@@ -38,7 +38,7 @@ const Profile = () => {
         <Form
           layout="vertical"
           form={form}
-          onFinish={handleProfileUpdate} // Call the update function
+          onFinish={handleProfileUpdate} // Call the update functio
         >
           <h2 className="text-xl font-semibold mb-4 text-center">
             Edit Your Profile
