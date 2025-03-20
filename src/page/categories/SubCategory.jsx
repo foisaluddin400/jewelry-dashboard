@@ -4,7 +4,7 @@ import { MdBlockFlipped, MdModeEditOutline, MdOutlineArrowOutward } from "react-
 import { LuEye } from "react-icons/lu";
 import { FaArrowLeft } from "react-icons/fa";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Profile from "../../assets/header/profileLogo.png";
 
 import img from "../../assets/header/img1.png";
@@ -13,34 +13,31 @@ import { CategoryEdit } from "./CategoryEdit";
 import { SubCategoryEdit } from "./SubCategoryEdit";
 import Navigate from "../../Navigate";
 import { AddSubCategories } from "./AddSubCategories";
+import { useGetSubCategoryQuery } from "../redux/api/categoryApi";
 
 const SubCategory = () => {
-    const [openAddModal, setOpenAddModal] = useState(false);
-  const [modal2Open, setModal2Open] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState(null);
+  const { id } = useParams();
+  const { data: subCategoryData, isLoading } = useGetSubCategoryQuery(
+    { id },
+    { refetchOnMountOrArgChange: true }
+  );
+
+
+  const [openAddModal, setOpenAddModal] = useState(false);
   const [editModal, setEditModal] = useState(false);
-  const navigate = useNavigate();
+  const userData = subCategoryData?.subcategories?.map((item, index) => ({
+    key: item._id,
+    sl: index + 1,
+    categoryName: item.name,
+    details: item.details || "No details available",
+    image: item.img_url,
+  })) || [];
 
-  const userData = [
-    {
-      key: "1",
-      sl: 1,
+  
 
-      categoryName: "John Doe",
-      image: img,
-    },
-  ];
+ 
 
-  const openModal = (record) => {
-    setSelectedRecord(record);
-    setModal2Open(true);
-  };
-
-  const closeModal = () => {
-    setModal2Open(false);
-    setSelectedRecord(null);
-  };
-
+  
   const handleEdit = (record) => {
     setEditModal(true);
   };
@@ -70,7 +67,10 @@ const SubCategory = () => {
         </div>
       ),
     },
-    
+    {
+      title: "Sub-Category Details",
+      dataIndex: "details",
+    },
     {
       title: "Action",
       dataIndex: "action",
@@ -83,9 +83,9 @@ const SubCategory = () => {
           >
             <MdModeEditOutline />
           </button>
-          <button className="" >
+          <button className="">
             <span className="bg-[#DC4600] text-[white] w-[35px] h-[35px] flex justify-center items-center rounded text-xl ">
-            <RiDeleteBin6Line />
+              <RiDeleteBin6Line />
             </span>
           </button>
         </Space>
@@ -95,19 +95,36 @@ const SubCategory = () => {
 
   return (
     <div className="h-screen bg-white p-3">
-      <div className="flex justify-between ">
-      <Navigate title={'Sub-Categories'}></Navigate>
-      <button onClick={() => setOpenAddModal(true)} className="bg-black py-2 px-4 text-white">+ Add New</button>
+      <div className="flex justify-between">
+        <Navigate title={"Sub-Categories"} />
+        <button
+          onClick={() => setOpenAddModal(true)}
+          className="bg-black py-2 px-4 text-white"
+        >
+          + Add New
+        </button>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={userData}
-        pagination={{ pageSize: 10, position: ["bottomCenter"] }}
-      />
+<br />
+      {isLoading ? (
+        <div className="flex justify-center items-center h-[300px]">
+          <Spin size="large" />
+        </div>
+      ) : (
+        <Table
+          columns={columns}
+          dataSource={userData}
+          pagination={false}
+        />
+      )}
 
-<AddSubCategories setOpenAddModal={setOpenAddModal} openAddModal={openAddModal}></AddSubCategories>
-      <SubCategoryEdit editModal1={editModal} setEditModal1={setEditModal}></SubCategoryEdit>
+      <AddSubCategories
+      subCategoryData={subCategoryData}
+      id={id}
+        setOpenAddModal={setOpenAddModal}
+        openAddModal={openAddModal}
+      />
+      <SubCategoryEdit editModal1={editModal} setEditModal1={setEditModal} />
     </div>
   );
 };

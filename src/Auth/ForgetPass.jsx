@@ -1,18 +1,29 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button, Checkbox, Form, Input, message } from "antd";
+import { useForgotPasswordMutation } from "../page/redux/api/userApi";
+
 
 const ForgetPass = () => {
-  const onFinish = async (values) => {
-    console.log(values);
+  const navigate = useNavigate()
+  const[forgotPassword] = useForgotPasswordMutation();
 
-    // forgotPassword(values)
-    //   .unwrap()
-    //   .then((payload) => {
-    //     message.success("check Your Email");
-    //     navigate("/verify");
-    //     localStorage.setItem("email", values?.email);
-    //   })
-    //   .catch((error) => message.error(error?.data?.message));
+
+
+
+  const onFinish = async (values) => {
+    
+    console.log(values);
+    
+
+    forgotPassword(values)
+      .unwrap()
+      .then((payload) => {
+        console.log(payload)
+        message.success(payload?.message);
+        navigate("/verify");
+        localStorage.setItem("email", values?.email);
+      })
+      .catch((error) => message.error(error?.data?.message));
   };
 
   return (
@@ -56,15 +67,15 @@ const ForgetPass = () => {
               </Form.Item>
 
               <Form.Item>
-                <Link to={"/verify"}>
+            
                   <button
-                    type="primary"
+                    type="submit"
                     htmlType="submit"
                     className="w-full py-2 mt-6 bg-black text-white rounded  focus:ring-2 focus:ring-gray-500"
                   >
                     Submit
                   </button>
-                </Link>
+               
               </Form.Item>
             </Form>
           </div>

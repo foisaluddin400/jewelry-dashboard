@@ -1,25 +1,37 @@
 import { Checkbox, Form, Input, message } from "antd";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useResetPasswordMutation } from "../page/redux/api/userApi";
 
 const ResetPass = () => {
-  const onFinish = async (values) => {
-    console.log(values);
 
-    // const data = {
-    //   email: localStorage.getItem("email"),
-    //   newPassword: values?.password,
-    //   confirmPassword: values?.confirmPassword,
-    // };
 
-    // try {
-    //   const result = await resetPassword({ data, email: data.email }).unwrap();
+const navigate = useNavigate()
 
-    //   message.success(result?.message);
-    //   navigate("/login");
-    // } catch (error) {
-    //   message.error(error?.data?.message || "Error resetting password.");
-    // }
+const [resetPassword] = useResetPasswordMutation();
+
+
+
+  const onFinish = (values) => {
+  console.log(values);
+
+  const data = {
+    email: localStorage.getItem("email"),
+    password: values?.password,
+    token: localStorage.getItem("token"),
   };
+
+  resetPassword(data)
+    .unwrap()
+    .then((result) => {
+      console.log(result)
+      message.success(result?.message);
+      navigate("/login");
+    })
+    .catch((error) => {
+      console.log(error)
+      message.error(error?.data?.message);
+    });
+};
   return (
     <div className="min-h-screen  bg-slate-100">
       <div className=" min-h-screen flex items-center justify-center">
@@ -83,12 +95,12 @@ const ResetPass = () => {
 
               <Form.Item>
                 
-                <Link to={'/'}><button
+              <button
                   type="submit"
                   className="w-full py-2 bg-black text-white rounded-md"
                 >
                   Reset
-                </button></Link>
+                </button>
               </Form.Item>
             </Form>
           </div>

@@ -1,15 +1,15 @@
-import { Form, Input, Modal, Radio, Select, Upload } from "antd";
+import { Form, Input, Modal, Radio, Select, Spin, Upload } from "antd";
 import React, { useState } from "react";
+import { useAddCategoryMutation } from "../redux/api/categoryApi";
 
-export const AddSubCategories = ({ openAddModal, setOpenAddModal }) => {
-  const [fileList, setFileList] = useState([
-    {
-      uid: "-1",
-      name: "image.png",
-      status: "done",
-      url: "https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png",
-    },
-  ]);
+export const AddSubCategories = ({ openAddModal, setOpenAddModal ,id, subCategoryData}) => {
+  console.log(id)
+  const [addSubCategory] = useAddCategoryMutation()
+    const [fileList, setFileList] = useState([]);
+    const [form] = Form.useForm();
+ const [loading, setLoading] = useState(false);
+  // const tt = nameData?.map(item=> item?.categoryName)
+  // console.log(nameData)
   const onChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);
   };
@@ -28,15 +28,42 @@ export const AddSubCategories = ({ openAddModal, setOpenAddModal }) => {
     imgWindow?.document.write(image.outerHTML);
   };
 
-  const [form] = Form.useForm();
+  
   const handleCancel = () => {
     form.resetFields();
     setFileList([]);
     setOpenAddModal(false);
   };
 
+
   const handleSubmit = async (values) => {
+    const formData = new FormData();
     console.log(values);
+    formData.append("parent", values?.parent);
+    formData.append("name", values?.name);
+    formData.append("details", values?.details);
+
+    fileList.forEach((file) => {
+      formData.append("image", file.originFileObj);
+    });
+  setLoading(true)
+    addSubCategory(formData)
+  .then((response) => {
+    console.log(response)
+    setOpenAddModal(false);
+
+    if (response) {
+      message.success(response?.data?.message);
+      form.resetFields();
+    } 
+    setFileList([]);
+    setLoading(false);
+  })
+  .catch((error) => {
+    message.error(error?.data?.message);
+    console.error("Error submitting form:", error);
+    setLoading(false);
+  });
   };
   return (
     <Modal
@@ -53,30 +80,39 @@ export const AddSubCategories = ({ openAddModal, setOpenAddModal }) => {
 
           <Form.Item
             label="Sub-Category Name"
-            name="category"
+            name="parent"
+          initialValue={subCategoryData?.name}
             rules={[{ required: true, message: "Please enter the price" }]}
+          >
+            <Input disabled className="py-2" type="price" placeholder="Enter Category" />
+          </Form.Item>
+          <Form.Item
+                      label="Category Name"
+                      name="name"
+                      rules={[{ required: true, message: "Please enter the category" }]}
+                    >
+                      <Input className="py-2" type="price" placeholder="Enter Category" />
+                    </Form.Item>
+          <Form.Item
+            label="Details"
+            name="details"
+            rules={[{ required: true, message: "Please enter the Details" }]}
           >
             <Input className="py-2" type="price" placeholder="Enter Category" />
           </Form.Item>
-          <Form.Item
-            label="Upload Image"
-            name="price"
-            rules={[{ required: true, message: "Please enter the price" }]}
-          >
-     
-              <Upload
-                action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
-                listType="picture-card"
-                fileList={fileList}
-                onChange={onChange}
-                onPreview={onPreview}
-              >
-                {fileList.length < 5 && "+ Upload"}
-              </Upload>
-        
-          </Form.Item>
+          <Form.Item label="Photos">
+                      <Upload
+                        listType="picture-card"
+                        fileList={fileList}
+                        onChange={onChange}
+                        onPreview={onPreview}
+                        multiple={true} 
+                      >
+                        {fileList.length < 5 && '+ Upload'}
+                      </Upload>
+                    </Form.Item>
 
-          {/* Buttons */}
+         
           <div className="flex gap-3 mt-4">
             <button
               type="button"
@@ -87,9 +123,14 @@ export const AddSubCategories = ({ openAddModal, setOpenAddModal }) => {
             </button>
             <button
               type="submit"
+              disabled={loading}
               className="px-4 py-2 w-full bg-black text-white rounded-md"
             >
-              Update
+              {loading ? (
+                <Spin size="small" /> 
+              ) : (
+                "Update"
+              )}
             </button>
           </div>
         </Form>

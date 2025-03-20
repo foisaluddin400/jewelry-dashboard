@@ -1,48 +1,29 @@
-import { Table, Input, Space, Modal, Spin, message } from "antd";
-import { LoadingOutlined, SearchOutlined } from "@ant-design/icons";
-import {
-  MdBlockFlipped,
-  MdModeEditOutline,
-  MdOutlineArrowOutward,
-} from "react-icons/md";
-import { LuEye } from "react-icons/lu";
-import { FaArrowLeft } from "react-icons/fa";
+import { Table, Space, message } from "antd";
+import { MdModeEditOutline, MdOutlineArrowOutward } from "react-icons/md";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Profile from "../../assets/header/profileLogo.png";
-
-import img from "../../assets/header/img1.png";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { CategoryEdit } from "./CategoryEdit";
 import Navigate from "../../Navigate";
 import { AddCategories } from "./AddCategories";
+import { useGetCategoryQuery } from "../redux/api/categoryApi";
 
 const Categories = () => {
   const [openAddModal, setOpenAddModal] = useState(false);
-  const [modal2Open, setModal2Open] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState(null);
+  const { data: category, isLoading, error } = useGetCategoryQuery();
   const [editModal, setEditModal] = useState(false);
-  const navigate = useNavigate();
 
-  const userData = [
-    {
-      key: "1",
-      sl: 1,
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Failed to fetch categories!</p>;
 
-      categoryName: "John Doe",
-      image: img,
-    },
-  ];
-
-  const openModal = (record) => {
-    setSelectedRecord(record);
-    setModal2Open(true);
-  };
-
-  const closeModal = () => {
-    setModal2Open(false);
-    setSelectedRecord(null);
-  };
+  // Table data mapping
+  const categoryData = category?.map((item, index) => ({
+    key: item._id,
+    sl: index + 1,
+    categoryName: item.name,
+    details: item.details,
+    image: item.img_url,
+  }));
 
   const handleEdit = (record) => {
     setEditModal(true);
@@ -74,37 +55,29 @@ const Categories = () => {
       ),
     },
     {
+      title: "Category Details",
+      dataIndex: "details",
+    },
+    {
       title: "Action",
-      dataIndex: "action",
       align: "center",
       render: (_, record) => (
         <Space size="middle">
-          <button className="">
-            <Link to={"/dashboard/categories/sub-categories"}>
+          <button>
+            <Link to={`/dashboard/categories/sub-categories/${record.key}`}>
               <span className="border text-black w-[35px] h-[35px] flex justify-center items-center rounded text-xl ">
                 <MdOutlineArrowOutward />
               </span>
             </Link>
           </button>
-        </Space>
-      ),
-    },
-    {
-      title: "Action",
-      dataIndex: "action",
-      align: "center",
-      render: (_, record) => (
-        <Space size="middle">
           <button
             onClick={() => handleEdit(record)}
-            className="bg-[#0022FF] text-[white] w-[35px] h-[35px] flex justify-center items-center rounded text-xl "
+            className="bg-[#0022FF] text-white w-[35px] h-[35px] flex justify-center items-center rounded text-xl "
           >
             <MdModeEditOutline />
           </button>
-          <button className="">
-            <span className="bg-[#DC4600] text-[white] w-[35px] h-[35px] flex justify-center items-center rounded text-xl ">
-              <RiDeleteBin6Line />
-            </span>
+          <button className="bg-[#DC4600] text-white w-[35px] h-[35px] flex justify-center items-center rounded text-xl ">
+            <RiDeleteBin6Line />
           </button>
         </Space>
       ),
@@ -113,8 +86,8 @@ const Categories = () => {
 
   return (
     <div className="h-screen bg-white p-3">
-      <div className="flex justify-between ">
-        <Navigate title={"Categories"}></Navigate>
+      <div className="flex justify-between">
+        <Navigate title={"Categories"} />
         <button
           onClick={() => setOpenAddModal(true)}
           className="text-white bg-black py-2 px-4"
@@ -122,21 +95,18 @@ const Categories = () => {
           + Add New
         </button>
       </div>
-
+<br />
       <Table
         columns={columns}
-        dataSource={userData}
-        pagination={{ pageSize: 10, position: ["bottomCenter"] }}
+        dataSource={categoryData}
+        pagination={false}
       />
 
       <AddCategories
         setOpenAddModal={setOpenAddModal}
         openAddModal={openAddModal}
-      ></AddCategories>
-      <CategoryEdit
-        editModal1={editModal}
-        setEditModal1={setEditModal}
-      ></CategoryEdit>
+      />
+      <CategoryEdit editModal1={editModal} setEditModal1={setEditModal} />
     </div>
   );
 };

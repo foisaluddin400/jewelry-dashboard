@@ -23,13 +23,14 @@ import HelpCenter from "../page/helpFaqs/HelpCenter";
 import Faqs from "../page/helpFaqs/Faqs";
 import SubCategory from "../page/categories/SubCategory";
 import Apointment from "../components/Dashboard/Apointment";
+import ProtectedRoute from "../protectedRoute/ProtectedRoute";
 
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: (
-        <DashboardLayout></DashboardLayout>
+       <ProtectedRoute> <DashboardLayout></DashboardLayout></ProtectedRoute>
     ),
     children: [
       {
@@ -58,7 +59,7 @@ export const router = createBrowserRouter([
         element: <Categories></Categories>
       },
       {
-        path: "/dashboard/categories/sub-categories",
+        path: "/dashboard/categories/sub-categories/:id",
         element: <SubCategory></SubCategory>
       },
       {

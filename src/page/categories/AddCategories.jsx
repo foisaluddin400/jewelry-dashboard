@@ -1,18 +1,17 @@
-import { Form, Input, Modal, Radio, Select, Upload } from "antd";
+import { Form, Input, message, Modal, Radio, Select, Spin, Upload } from "antd";
 import React, { useState } from "react";
+import { useAddCategoryMutation } from "../redux/api/categoryApi";
 
 export const AddCategories = ({ openAddModal, setOpenAddModal }) => {
-  const [fileList, setFileList] = useState([
-    {
-      uid: "-1",
-      name: "image.png",
-      status: "done",
-      url: "https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png",
-    },
-  ]);
+  const [addCategory] = useAddCategoryMutation()
+  const [fileList, setFileList] = useState([]);
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+
   const onChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);
   };
+
   const onPreview = async (file) => {
     let src = file.url;
     if (!src) {
@@ -28,7 +27,7 @@ export const AddCategories = ({ openAddModal, setOpenAddModal }) => {
     imgWindow?.document.write(image.outerHTML);
   };
 
-  const [form] = Form.useForm();
+  
   const handleCancel = () => {
     form.resetFields();
     setFileList([]);
@@ -36,7 +35,34 @@ export const AddCategories = ({ openAddModal, setOpenAddModal }) => {
   };
 
   const handleSubmit = async (values) => {
+    const formData = new FormData();
     console.log(values);
+    formData.append("name", values?.name);
+    formData.append("details", values?.details);
+
+    fileList.forEach((file) => {
+      formData.append("image", file.originFileObj);
+    });
+    setLoading(true);
+
+    addCategory(formData)
+  .then((response) => {
+    console.log(response)
+    setOpenAddModal(false);
+
+    if (response) {
+      message.success(response?.data?.message);
+      form.resetFields();
+    } 
+    setFileList([]);
+    setLoading(false);
+  })
+  .catch((error) => {
+    message.error(error?.data?.message);
+    console.error("Error submitting form:", error);
+    setLoading(false);
+  });
+
   };
   return (
     <Modal
@@ -50,33 +76,31 @@ export const AddCategories = ({ openAddModal, setOpenAddModal }) => {
         <h2 className="text-center font-bold text-lg mb-11">Add</h2>
         <Form form={form} onFinish={handleSubmit} layout="vertical">
           {/* Package Name */}
-
           <Form.Item
             label="Category Name"
-            name="category"
-            rules={[{ required: true, message: "Please enter the price" }]}
+            name="name"
+            rules={[{ required: true, message: "Please enter the category" }]}
           >
             <Input className="py-2" type="price" placeholder="Enter Category" />
           </Form.Item>
           <Form.Item
-            label="Upload Image"
-            name="price"
-            rules={[{ required: true, message: "Please enter the price" }]}
+            label="Details"
+            name="details"
+            rules={[{ required: true, message: "Please enter details" }]}
           >
-     
-              <Upload
-                action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
-                listType="picture-card"
-                fileList={fileList}
-                onChange={onChange}
-                onPreview={onPreview}
-              >
-                {fileList.length < 5 && "+ Upload"}
-              </Upload>
-        
+            <Input.TextArea className="py-2" type="price" placeholder="Enter Category" />
           </Form.Item>
-
-          {/* Buttons */}
+          <Form.Item label="Photos">
+            <Upload
+              listType="picture-card"
+              fileList={fileList}
+              onChange={onChange}
+              onPreview={onPreview}
+              multiple={true} 
+            >
+              {fileList.length < 5 && '+ Upload'}
+            </Upload>
+          </Form.Item>
           <div className="flex gap-3 mt-4">
             <button
               type="button"
@@ -87,9 +111,14 @@ export const AddCategories = ({ openAddModal, setOpenAddModal }) => {
             </button>
             <button
               type="submit"
+              disabled={loading}
               className="px-4 py-2 w-full bg-black text-white rounded-md"
             >
-              Update
+              {loading ? (
+                <Spin size="small" /> 
+              ) : (
+                "Add"
+              )}
             </button>
           </div>
         </Form>

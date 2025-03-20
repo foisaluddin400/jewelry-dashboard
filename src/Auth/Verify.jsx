@@ -1,42 +1,52 @@
 import { useState } from "react";
 import OTPInput from "react-otp-input";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useResendHitMutation, useVerifyOtpMutation } from "../page/redux/api/userApi";
+import { message } from "antd";
 
 const Verify = () => {
   const [otp, setOtp] = useState("");
-  const handleVerify = async () => {
-    // const data = {
-    //   code: otp,
-    //   email: localStorage.getItem("email"),
-    // };
-
-   
-
-    // try {
-    //   const response = await verifyOtp({data}).unwrap();
-    
-    //   message.success(response?.message);
-    //   navigate("/reset");
-    // } catch (error) {
-    //   console.error(error); // Debugging: log error response
-    //   message.error(error?.data?.message );
-    // }
+  const [verifyOtp] = useVerifyOtpMutation();
+  const [resendVerifyOtp]= useResendHitMutation()
+  const navigate = useNavigate()
+  const handleVerify = () => {
+    const data = {
+      otp: otp,
+      email: localStorage.getItem("email"),
+    };
+  
+    verifyOtp( data )
+      .unwrap()
+      .then((response) => {
+        console.log(response)
+        message.success(response?.message);
+        navigate("/reset");
+        localStorage.setItem("token", response?.passwordResetToken);
+      })
+      .catch((error) => {
+        console.error(error); 
+        message.error(error?.data?.message);
+      });
   };
 
-  // const handleResend =async () => {
-  //   const data = {
-  //     email: localStorage.getItem("email"),
-  //   };
-  //   try {
-  //     const response =await resendVerifyOtp(data).unwrap();
-      
-  //     message.success(response.message);
-  //   } catch (error) {
-  //     console.error(error);
-  //     message.error(error?.data?.message || "Failed to resend OTP!");
-  //   }
-  // };
+  const handleResend = () => {
+    const data = {
+      email: localStorage.getItem("email"),
+      type: "forgot_password",
+    };
+  
+    resendVerifyOtp(data)
+      .unwrap()
+      .then((response) => {
+        console.log(response)
+        message.success(response.message);
+      })
+      .catch((error) => {
+        console.error(error);
+        message.error(error?.data?.message );
+      });
+  };
   return (
     <div className="min-h-screen  bg-gray-100">
       
@@ -66,17 +76,17 @@ const Verify = () => {
               />
             </div>
 
-            <Link to={'/reset'}><button
+           <button
               onClick={handleVerify}
               className="w-full py-2 bg-black text-white rounded-md mb-4"
             >
               Verify Code
-            </button></Link>
+            </button>
 
             <span className="flex justify-center ">
               You have not received the email?{" "}
               <span
-                // onClick={handleResend}
+                onClick={handleResend}
                 className="text-blue-600 cursor-pointer pl-2"
               >
                  Resend

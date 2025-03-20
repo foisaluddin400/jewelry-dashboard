@@ -23,18 +23,18 @@ const useApi = baseApi.injectEndpoints({
       providesTags: ["updateProfile"],
     }),
     forgotPassword: builder.mutation({
-      query: (email) => {
+      query: (data) => {
         return {
           url: "/auth/forgot-password",
           method: "POST",
-          body: email,
+          body: data,
         };
       },
     }),
     verifyOtp: builder.mutation({
       query: (data) => {
         return {
-          url: "/auth/recovery-verification",
+          url: "/auth/verify-otp",
           method: "POST",
           body: data,
         };
@@ -44,7 +44,16 @@ const useApi = baseApi.injectEndpoints({
       query: (data) => {
         return {
           url: "/auth/reset-password",
-          method: "PUT",
+          method: "POST",
+          body: data,
+        };
+      },
+    }),
+    resendHit: builder.mutation({
+      query: (data) => {
+        return {
+          url: "/auth/resend",
+          method: "POST",
           body: data,
         };
       },
@@ -100,4 +109,5 @@ export const {
   useChangePasswordMutation,
   useGetHostUserQuery,
   useBlockUserHostMutation,
+  useResendHitMutation
 } = useApi;
