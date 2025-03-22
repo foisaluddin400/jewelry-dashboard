@@ -131,4 +131,6 @@ export const router = createBrowserRouter([
     path: "/reset",
     element: <ResetPass></ResetPass>,
   },
-]);
+],{future: {
+  v7_fetcherPersist: true,
+}});

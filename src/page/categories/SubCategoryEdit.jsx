@@ -1,18 +1,35 @@
-import { Form, Input, Modal, Radio, Select, Upload } from "antd";
-import React, { useState } from "react";
+import { Form, Input, message, Modal, Radio, Select, Spin, Upload } from "antd";
+import React, { useEffect, useState } from "react";
+import { useUpdateCategoryMutation } from "../redux/api/categoryApi";
 
-export const SubCategoryEdit = ({ editModal1, setEditModal1 }) => {
-  const [fileList, setFileList] = useState([
-    {
-      uid: "-1",
-      name: "image.png",
-      status: "done",
-      url: "https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png",
-    },
-  ]);
-  const onChange = ({ fileList: newFileList }) => {
-    setFileList(newFileList);
-  };
+export const SubCategoryEdit = ({
+  editModal1,
+  setEditModal1,
+  selectedSubCategory,
+  subCategoryData
+}) => {
+
+const [updateCategory ,{ isLoading }] = useUpdateCategoryMutation()
+  const id = selectedSubCategory?.key;
+
+  const [fileList, setFileList] = useState([]);
+   useEffect(() => {
+     if (selectedSubCategory?.image) {
+       setFileList([
+         {
+           uid: "-1",
+           name: "category-image.png",
+           status: "done",
+           url: selectedSubCategory.image,
+         },
+       ]);
+     }
+   }, [selectedSubCategory]);
+ 
+   const onChange = ({ fileList: newFileList }) => {
+     setFileList(newFileList);
+   };
+ 
   const onPreview = async (file) => {
     let src = file.url;
     if (!src) {
@@ -36,8 +53,42 @@ export const SubCategoryEdit = ({ editModal1, setEditModal1 }) => {
   };
 
   const handleSubmit = async (values) => {
-    console.log(values);
+    const formData = new FormData();
+  
+    formData.append("id", id);
+    formData.append("name", values.categoryName);
+    fileList.forEach((file) => {
+      formData.append("image", file.originFileObj);
+    });
+  
+
+   updateCategory(formData)
+         .then((response) => {
+     
+           setEditModal1(false);
+   
+           if (response) {
+             message.success(response?.data?.message);
+             form.resetFields();
+           }
+           setFileList([]);
+         
+         })
+         .catch((error) => {
+           message.error(error?.data?.message);
+           console.error("Error submitting form:", error);
+         });
+  
   };
+
+  useEffect(() => {
+    if (selectedSubCategory) {
+      form.setFieldsValue({
+        categoryName: selectedSubCategory?.categoryName,
+        
+      });
+    }
+  }, [selectedSubCategory, form]);
   return (
     <Modal
       centered
@@ -52,29 +103,38 @@ export const SubCategoryEdit = ({ editModal1, setEditModal1 }) => {
           {/* Package Name */}
 
           <Form.Item
-            label="Sub-Category Name"
-            name="category"
+            label="Category Name"
+            name="parent"
+            initialValue={subCategoryData?.name}
             rules={[{ required: true, message: "Please enter the price" }]}
+          >
+            <Input
+              disabled
+              className="py-2"
+              type="price"
+              placeholder="Enter Category"
+            />
+          </Form.Item>
+          <Form.Item
+            label="Sub-Category Name"
+            name="categoryName"
+            rules={[{ required: true, message: "Please enter the category" }]}
           >
             <Input className="py-2" type="price" placeholder="Enter Category" />
           </Form.Item>
-          <Form.Item
-            label="Upload Image"
-            name="price"
-            rules={[{ required: true, message: "Please enter the price" }]}
+       
+        <Form.Item label="Photos">
+          <Upload
+            listType="picture-card"
+            fileList={fileList}
+            onChange={onChange}
+            onPreview={onPreview}
+            maxCount={1} 
           >
-     
-              <Upload
-                action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
-                listType="picture-card"
-                fileList={fileList}
-                onChange={onChange}
-                onPreview={onPreview}
-              >
-                {fileList.length < 5 && "+ Upload"}
-              </Upload>
+            {fileList.length < 1 && "+ Upload"}
+          </Upload>
+        </Form.Item>
         
-          </Form.Item>
 
           {/* Buttons */}
           <div className="flex gap-3 mt-4">
@@ -88,8 +148,13 @@ export const SubCategoryEdit = ({ editModal1, setEditModal1 }) => {
             <button
               type="submit"
               className="px-4 py-2 w-full bg-black text-white rounded-md"
+              disabled={isLoading} 
             >
-              Update
+              {isLoading ? (
+                <Spin size="small" /> 
+              ) : (
+                "Update"
+              )}
             </button>
           </div>
         </Form>

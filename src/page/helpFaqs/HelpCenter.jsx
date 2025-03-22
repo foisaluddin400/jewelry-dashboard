@@ -131,7 +131,7 @@ const HelpCenter = () => {
         footer={null}
         closable={true}
         width={400}
-        bodyStyle={{ borderRadius: 0 }}
+     
         className="no-border-radius-modal"
         closeIcon={<span className="text-lg text-black">×</span>}
       >

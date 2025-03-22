@@ -12,7 +12,7 @@ const [resetPassword] = useResetPasswordMutation();
 
 
   const onFinish = (values) => {
-  console.log(values);
+
 
   const data = {
     email: localStorage.getItem("email"),
@@ -23,12 +23,12 @@ const [resetPassword] = useResetPasswordMutation();
   resetPassword(data)
     .unwrap()
     .then((result) => {
-      console.log(result)
+      
       message.success(result?.message);
       navigate("/login");
     })
     .catch((error) => {
-      console.log(error)
+   
       message.error(error?.data?.message);
     });
 };

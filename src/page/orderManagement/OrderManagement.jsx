@@ -2,34 +2,35 @@ import { Table, Input, Space, Modal, Spin, message } from "antd";
 import { LoadingOutlined, SearchOutlined } from "@ant-design/icons";
 import { MdBlockFlipped, MdModeEditOutline } from "react-icons/md";
 import { LuEye } from "react-icons/lu";
-import { FaArrowLeft } from "react-icons/fa";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Profile from "../../assets/header/profileLogo.png";
-import { OrderEdit } from "./OrderEdit";
 import Navigate from "../../Navigate";
-
-
+import { useGetOrderQuery } from "../redux/api/orderApi";
+import OrderEdit from "./OrderEdit";
 const OrderManagement = () => {
   const [modal2Open, setModal2Open] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
+  console.log(selectedRecord)
   const [editModal, setEditModal] = useState(false);
+  const { data: orderData, isLoading, isError } = useGetOrderQuery();
   const navigate = useNavigate();
 
-  const userData = [
-    {
-      key: "1",
-      sl: 1,
-      total: "101",
-      customerName: "John Doe",
-      shippingAddress: "John Doe",
-      customerName: "John Doe",
-      date: "1990-05-14",
-      contactNumber: "1234567890",
-      email: "john@example.com",
-      status: "in-progress",
-    },
-  ];
+  if (isLoading) return <Spin indicator={<LoadingOutlined />} />;
+  if (isError) return <p>Failed to load orders</p>;
+
+  const orders = orderData?.map((order, index) => ({
+    key: order._id,
+    sl: index + 1,
+    date: new Date(order.createdAt).toLocaleDateString(),
+    total: order.ready_made_details.products.reduce(
+      (sum, item) => sum + (item.product_id.discount_price || item.product_id.price) * item.quantity,
+      0
+    ),
+    shippingAddress: order.ready_made_details.shipping_address,
+    paymentStatus: order.payment_status,
+    orderStatus: order.order_status,
+    details: order,
+  }));
 
   const openModal = (record) => {
     setSelectedRecord(record);
@@ -41,91 +42,48 @@ const OrderManagement = () => {
     setSelectedRecord(null);
   };
 
-
-
   const handleEdit = (record) => {
-    
+    setSelectedRecord(record);
     setEditModal(true);
   };
 
   const columns = [
-    {
-      title: "SL no.",
-      dataIndex: "sl",
-      width: 70,
-      align: "center",
-    },
-    {
-      title: "Customer Name",
-      dataIndex: "customerName",
-      width: 150,
-      render: (text) => (
-        <Space>
-          <img
-            src="https://via.placeholder.com/32"
-            alt="avatar"
-            style={{ borderRadius: "50%", width: 32, height: 32 }}
-          />
-          {text}
-        </Space>
-      ),
-    },
-    {
-      title: "Date",
-      dataIndex: "date",
-    },
-    {
-      title: "Total",
-      dataIndex: "total",
-    },
-    {
-      title: "Shipping Address",
-      dataIndex: "shippingAddress",
-    },
+    { title: "SL no.", dataIndex: "sl", width: 70, align: "center" },
+    { title: "Date", dataIndex: "date" },
+    { title: "Total", dataIndex: "total" },
+    { title: "Shipping Address", dataIndex: "shippingAddress" },
     {
       title: "Payment Status",
-      key: "payment",
-      render: () => (
-        <div className="flex space-x-2">
-          <button
-            type="primary"
-            className="bg-[#D9F2DD] text-[#359742] rounded-full py-1 px-5"
-          >
-            Pending
-          </button>
-        </div>
+      dataIndex: "paymentStatus",
+      render: (text) => (
+        <button className="bg-[#D9F2DD] text-[#359742] rounded-full py-1 px-5">
+          {text}
+        </button>
       ),
     },
     {
       title: "Order Status",
-      key: "order",
-      render: () => (
-        <div className="flex space-x-2">
-          <button
-            type="primary"
-            className="bg-[#D9F2DD] text-[#359742] rounded-full py-1 px-5"
-          >
-            Completed
-          </button>
-        </div>
+      dataIndex: "orderStatus",
+      render: (text) => (
+        <button className="bg-[#D9F2DD] text-[#359742] rounded-full py-1 px-5">
+          {text}
+        </button>
       ),
     },
     {
       title: "Action",
-      dataIndex: "action",
       align: "center",
       render: (_, record) => (
         <Space size="middle">
-          <button className="" onClick={() => openModal(record)}>
-            <span className="bg-black text-[white] w-[35px] h-[35px] flex justify-center items-center rounded text-xl ">
+          <button onClick={() => openModal(record)}>
+            <span className="bg-black text-white w-9 h-9 flex justify-center items-center rounded text-xl">
               <LuEye />
             </span>
           </button>
-          <button
-          onClick={() => handleEdit(record)}
-            className="bg-[#0022FF] text-[white] w-[35px] h-[35px] flex justify-center items-center rounded text-xl "
-          >
-            <MdModeEditOutline />
+          <button onClick={() => handleEdit(record)}>
+            <span className="bg-[#0022FF] text-white w-9 h-9 flex justify-center items-center rounded text-xl">
+              <MdModeEditOutline />
+            </span>
           </button>
         </Space>
       ),
@@ -134,8 +92,8 @@ const OrderManagement = () => {
 
   return (
     <div className="h-screen bg-white p-3">
-      <div className="flex justify-between ">
-        <Navigate title={'Order Management'}></Navigate>
+      <div className="flex justify-between">
+        <Navigate title={"Order Management"} />
         <Input
           placeholder="Search here..."
           prefix={<SearchOutlined />}
@@ -145,49 +103,78 @@ const OrderManagement = () => {
 
       <Table
         columns={columns}
-        dataSource={userData}
+        dataSource={orders}
         pagination={{ pageSize: 10, position: ["bottomCenter"] }}
       />
 
+      {/* Modal for Order Details */}
       <Modal
         centered
         open={modal2Open}
         onCancel={closeModal}
         footer={null}
         closable={true}
-        width={400}
-        bodyStyle={{ borderRadius: 0 }}
-        className="no-border-radius-modal"
+        width={800}
         closeIcon={<span className="text-lg text-black">×</span>}
       >
-        <div className="flex justify-center py-8">
-          <img
-            className="w-[70px] h-[70px] rounded-full"
-            src={Profile}
-            alt="profile"
-          />
-        </div>
-        <div>
-          <div className="grid grid-cols-2">
-          <div className="text-lg gap-4">
-              <h4>Customer Name</h4>
-              <h4>Date</h4>
-              <h4>Contact Number:</h4>
-              <h4>Email:</h4>
-              <h4>Status:</h4>
+        {selectedRecord && (
+          <div>
+            <div className="grid grid-cols-2 ">
+              <div className="text-md gap-4 space-y-3">
+            
+                <h4>Shipping Address:</h4>
+                <h4>Order Date:</h4>
+                <h4>Total Price:</h4>
+                <h4>Payment Status:</h4>
+                <h4>Order Status:</h4>
+              </div>
+              <div className="gap-4 text-md space-y-3">
+              
+                <h3>{selectedRecord.shippingAddress}</h3>
+                <h3>{selectedRecord.date}</h3>
+                <h3>${selectedRecord.total}</h3>
+                <h3>{selectedRecord.paymentStatus}</h3>
+                <h3>{selectedRecord.orderStatus}</h3>
+              </div>
             </div>
-            <div className="gap-4 text-lg ">
-              <h3>{selectedRecord?.customerName || "N/A"}</h3>
-              <h3>{selectedRecord?.date || "N/A"}</h3>
-              <h3>{selectedRecord?.contactNumber || "N/A"}</h3>
-              <h3>{selectedRecord?.email || "N/A"}</h3>
-              <h3>{selectedRecord?.status || "N/A"}</h3>
+
+            <div className="mt-4">
+              <p className="font-bold">Order Items:</p>
+              <div className="border rounded p-2">
+                {selectedRecord.details.ready_made_details.products.map(
+                  (item, index) => (
+                    <div
+                      key={item._id}
+                      className="flex justify-between items-center border-b py-2"
+                    >
+                      <div>
+                      <p>Color: {item.color}</p>
+                      </div>
+                      <div>
+                      <p>Size: {item.size}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium">{item.product_id.name}</p>
+                        
+                       
+                      </div>
+                      <div>
+                        <p>Qty: {item.quantity}</p>
+                      </div>
+                      <div>
+                        <p>Price: ${item.product_id.discount_price  || item.product_id.price}</p>
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </Modal>
       <OrderEdit editModal={editModal}
-        setEditModal={setEditModal}></OrderEdit>
+        setEditModal={setEditModal} selectedRecord={selectedRecord}></OrderEdit>
+
     </div>
   );
 };

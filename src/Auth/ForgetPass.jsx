@@ -12,13 +12,13 @@ const ForgetPass = () => {
 
   const onFinish = async (values) => {
     
-    console.log(values);
+ 
     
 
     forgotPassword(values)
       .unwrap()
       .then((payload) => {
-        console.log(payload)
+  
         message.success(payload?.message);
         navigate("/verify");
         localStorage.setItem("email", values?.email);

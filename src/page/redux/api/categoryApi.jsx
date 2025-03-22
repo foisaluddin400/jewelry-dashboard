@@ -13,6 +13,16 @@ const category = baseApi.injectEndpoints({
       providesTags: ["updateProfile"],
     }),
 
+    getAllProduct: builder.query({
+      query: () => {
+        return {
+          url: `/products`,
+          method: "GET",
+        };
+      },
+      providesTags: ["updateProfile"],
+    }),
+
     getSubCategory: builder.query({
       query: ({id}) => {
         return {
@@ -27,6 +37,41 @@ const category = baseApi.injectEndpoints({
       query: (data) => {
         return {
           url: "/admin/categories",
+          method: "POST",
+          body: data,
+        };
+      },
+      invalidatesTags: ["updateProfile"],
+    }),
+
+      updateCategory: builder.mutation({
+      query: (data) => {
+        return {
+          url: `/admin/categories`,
+          method: "PATCH",
+          body: data,
+        };
+      },
+      invalidatesTags: ["updateProfile"],
+    }),
+
+    
+
+    updateProduct: builder.mutation({
+      query: (data) => {
+        return {
+          url: `/admin/products`,
+          method: "PATCH",
+          body: data,
+        };
+      },
+      invalidatesTags: ["updateProfile"],
+    }),
+    
+    addProduct: builder.mutation({
+      query: (data) => {
+        return {
+          url: "/admin/products",
           method: "POST",
           body: data,
         };
@@ -91,5 +136,9 @@ const category = baseApi.injectEndpoints({
 export const {
 useGetCategoryQuery,
 useAddCategoryMutation,
-useGetSubCategoryQuery
+useGetSubCategoryQuery,
+useAddProductMutation,
+useGetAllProductQuery,
+useUpdateCategoryMutation,
+useUpdateProductMutation
 } = category;

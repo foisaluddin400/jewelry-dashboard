@@ -19,7 +19,7 @@ const Verify = () => {
     verifyOtp( data )
       .unwrap()
       .then((response) => {
-        console.log(response)
+   
         message.success(response?.message);
         navigate("/reset");
         localStorage.setItem("token", response?.passwordResetToken);
@@ -39,7 +39,7 @@ const Verify = () => {
     resendVerifyOtp(data)
       .unwrap()
       .then((response) => {
-        console.log(response)
+      
         message.success(response.message);
       })
       .catch((error) => {

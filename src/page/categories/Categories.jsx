@@ -11,6 +11,7 @@ import { useGetCategoryQuery } from "../redux/api/categoryApi";
 const Categories = () => {
   const [openAddModal, setOpenAddModal] = useState(false);
   const { data: category, isLoading, error } = useGetCategoryQuery();
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [editModal, setEditModal] = useState(false);
 
   if (isLoading) return <p>Loading...</p>;
@@ -26,6 +27,7 @@ const Categories = () => {
   }));
 
   const handleEdit = (record) => {
+    setSelectedCategory(record);
     setEditModal(true);
   };
 
@@ -106,7 +108,7 @@ const Categories = () => {
         setOpenAddModal={setOpenAddModal}
         openAddModal={openAddModal}
       />
-      <CategoryEdit editModal1={editModal} setEditModal1={setEditModal} />
+      <CategoryEdit editModal1={editModal} setEditModal1={setEditModal} selectedCategory={selectedCategory}/>
     </div>
   );
 };

@@ -22,6 +22,15 @@ const useApi = baseApi.injectEndpoints({
       },
       providesTags: ["updateProfile"],
     }),
+    getAllUserManagement: builder.query({
+      query: () => {
+        return {
+          url: "/admin/users",
+          method: "GET",
+        };
+      },
+      providesTags: ["updateProfile"],
+    }),
     forgotPassword: builder.mutation({
       query: (data) => {
         return {
@@ -88,14 +97,14 @@ const useApi = baseApi.injectEndpoints({
       providesTags: ["host"],
     }),
 
-    blockUserHost: builder.mutation({
-      query: (data) => ({
-        url: `/dashboard/block-unblock-user`,
+    blockUser: builder.mutation({
+      query: (id) => ({
+        url: `/admin/users/${id}`,
         method: "PATCH",
-        body: data,
       }),
-      invalidatesTags: ["host"], 
+      invalidatesTags: ["updateProfile"], 
     }),
+    
   }),
 });
 
@@ -108,6 +117,7 @@ export const {
   useUpdateProfileMutation,
   useChangePasswordMutation,
   useGetHostUserQuery,
-  useBlockUserHostMutation,
-  useResendHitMutation
+  useBlockUserMutation,
+  useResendHitMutation,
+  useGetAllUserManagementQuery
 } = useApi;

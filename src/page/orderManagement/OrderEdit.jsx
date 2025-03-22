@@ -1,18 +1,46 @@
-import { Form, Input, Modal, Radio, Select } from "antd";
-import React, { useState } from "react";
+import { Form, message, Modal, Radio } from "antd";
+import React, { useEffect } from "react";
+import { useUpdateOrderMutation } from "../redux/api/orderApi";
 
-export const OrderEdit = ({ editModal, setEditModal }) => {
-  const [fileList, setFileList] = useState([]);
+const OrderEdit = ({ editModal, setEditModal, selectedRecord }) => {
+  const [updateOrder] = useUpdateOrderMutation();
   const [form] = Form.useForm();
+
+  // Modal Cancel
   const handleCancel = () => {
     form.resetFields();
-    setFileList([]);
     setEditModal(false);
   };
 
+  // Set initial values when modal opens
+  useEffect(() => {
+    if (selectedRecord) {
+      form.setFieldsValue({
+        orderStatus: selectedRecord?.orderStatus,
+        paymentStatus: selectedRecord?.paymentStatus,
+      });
+    }
+  }, [selectedRecord, form]);
+
+  // Handle Form Submit
   const handleSubmit = async (values) => {
-    console.log(values);
+    const data = {
+      order_id: selectedRecord?.key,
+      order_status: values.orderStatus,
+      payment_status: values.paymentStatus,
+    };
+    try {
+      const response = await updateOrder(data).unwrap();
+      message.success(response?.message);
+      form.resetFields();
+      setEditModal(false);
+    } catch (error) {
+      console.log(error)
+      message.error(error?.data?.message);
+    }
+  
   };
+
   return (
     <Modal
       centered
@@ -22,49 +50,41 @@ export const OrderEdit = ({ editModal, setEditModal }) => {
       width={400}
     >
       <div className="mb-6 mt-4">
-        <h2 className="text-center font-bold text-lg mb-11">Edit</h2>
+        <h2 className="text-center font-bold text-lg mb-6">Edit Order</h2>
         <Form form={form} onFinish={handleSubmit} layout="vertical">
-          {/* Package Name */}
-
-         
+          {/* Order Status */}
           <Form.Item
             label="Order Status"
-            name="price"
-            rules={[{ required: true, message: "Please enter the price" }]}
+            name="orderStatus"
+            rules={[{ required: true, message: "Please select order status" }]}
           >
-            <Radio.Group
-              name="radiogroup"
-              defaultValue={1}
-              options={[
-                { value: 1, label: "A" },
-                { value: 2, label: "B" },
-                { value: 3, label: "C" },
-                { value: 4, label: "D" },
-              ]}
-            />
+            <Radio.Group>
+              <Radio value="Pending">Pending</Radio>
+              <Radio value="In Progress">In Progress</Radio>
+              <Radio value="Shipped">Shipped</Radio>
+              <Radio value="Completed">Completed</Radio>
+              <Radio value="Canceled">Canceled</Radio>
+            </Radio.Group>
           </Form.Item>
 
-      
+          {/* Payment Status */}
           <Form.Item
             label="Payment Status"
-            name="price"
-            rules={[{ required: true, message: "Please enter the price" }]}
+            name="paymentStatus"
+            rules={[
+              { required: true, message: "Please select payment status" },
+            ]}
           >
-            <Radio.Group
-              name="radiogroup"
-              defaultValue={1}
-              options={[
-                { value: 1, label: "A" },
-                { value: 2, label: "B" },
-                { value: 3, label: "C" },
-                { value: 4, label: "D" },
-              ]}
-            />
+            <Radio.Group>
+              <Radio value="Pending">Pending</Radio>
+              <Radio value="Paid">Paid</Radio>
+              <Radio value="Canceled">Canceled</Radio>
+            </Radio.Group>
           </Form.Item>
 
           {/* Buttons */}
           <div className="flex gap-3 mt-4">
-          <button
+            <button
               type="button"
               className="px-4 py-2 w-full border text-black rounded-md"
               onClick={handleCancel}
@@ -77,10 +97,11 @@ export const OrderEdit = ({ editModal, setEditModal }) => {
             >
               Update
             </button>
-            
           </div>
         </Form>
       </div>
     </Modal>
   );
 };
+
+export default OrderEdit;

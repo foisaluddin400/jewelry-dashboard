@@ -21,7 +21,7 @@ const SubCategory = () => {
     { id },
     { refetchOnMountOrArgChange: true }
   );
-
+  const [selectedSubCategory, setSelectedSubCategory] = useState(null);
 
   const [openAddModal, setOpenAddModal] = useState(false);
   const [editModal, setEditModal] = useState(false);
@@ -29,7 +29,6 @@ const SubCategory = () => {
     key: item._id,
     sl: index + 1,
     categoryName: item.name,
-    details: item.details || "No details available",
     image: item.img_url,
   })) || [];
 
@@ -39,6 +38,7 @@ const SubCategory = () => {
 
   
   const handleEdit = (record) => {
+    setSelectedSubCategory(record);
     setEditModal(true);
   };
 
@@ -67,10 +67,7 @@ const SubCategory = () => {
         </div>
       ),
     },
-    {
-      title: "Sub-Category Details",
-      dataIndex: "details",
-    },
+  
     {
       title: "Action",
       dataIndex: "action",
@@ -124,7 +121,7 @@ const SubCategory = () => {
         setOpenAddModal={setOpenAddModal}
         openAddModal={openAddModal}
       />
-      <SubCategoryEdit editModal1={editModal} setEditModal1={setEditModal} />
+      <SubCategoryEdit subCategoryData={subCategoryData} editModal1={editModal} setEditModal1={setEditModal} selectedSubCategory={selectedSubCategory}/>
     </div>
   );
 };

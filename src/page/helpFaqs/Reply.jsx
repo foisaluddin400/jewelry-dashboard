@@ -11,7 +11,7 @@ export const Reply = ({ editModal, setEditModal }) => {
   };
 
   const handleSubmit = async (values) => {
-    console.log(values);
+    
   };
   return (
     <Modal

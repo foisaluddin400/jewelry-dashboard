@@ -1,7 +1,13 @@
-import { Form, Input, Modal, Radio, Select } from "antd";
-import React, { useState } from "react";
+import { Form, Input, message, Modal, Radio, Select } from "antd";
+import React, { useEffect, useState } from "react";
+import { useUpdateOrderMutation } from "../redux/api/orderApi";
 
-export const RepairCustomEdit = ({ editModal1, setEditModal1 }) => {
+export const RepairCustomEdit = ({
+  editModal1,
+  setEditModal1,
+  selectedRecord,
+}) => {
+  const [updateOrder] = useUpdateOrderMutation();
   const [fileList, setFileList] = useState([]);
   const [form] = Form.useForm();
   const handleCancel = () => {
@@ -10,9 +16,34 @@ export const RepairCustomEdit = ({ editModal1, setEditModal1 }) => {
     setEditModal1(false);
   };
 
+  useEffect(() => {
+    if (selectedRecord) {
+      form.setFieldsValue({
+        order_status: selectedRecord?.order_status,
+        custom_order_price: selectedRecord?.custom_order_price,
+        paymentStatus: selectedRecord?.paymentStatus,
+      });
+    }
+  }, [selectedRecord, form]);
+
   const handleSubmit = async (values) => {
-    console.log(values);
+    const data = {
+      order_id: selectedRecord?.key,
+      price: values.custom_order_price,
+      order_status: values.order_status,
+      payment_status: values.paymentStatus,
+    };
+    try {
+      const response = await updateOrder(data).unwrap();
+      message.success(response?.message);
+      form.resetFields();
+      setEditModal1(false);
+    } catch (error) {
+      console.log(error);
+      message.error(error?.data?.message);
+    }
   };
+
   return (
     <Modal
       centered
@@ -28,49 +59,43 @@ export const RepairCustomEdit = ({ editModal1, setEditModal1 }) => {
 
           <Form.Item
             label="Order Status"
-            name="price"
+            name="custom_order_price"
             rules={[{ required: true, message: "Please enter the price" }]}
           >
             <Input className="py-2" type="price" placeholder="Enter price" />
           </Form.Item>
           <Form.Item
             label="Order Status"
-            name="price"
-            rules={[{ required: true, message: "Please enter the price" }]}
+            name="order_status"
+            rules={[{ required: true, message: "Please select order status" }]}
           >
-            <Radio.Group
-              name="radiogroup"
-              defaultValue={1}
-              options={[
-                { value: 1, label: "A" },
-                { value: 2, label: "B" },
-                { value: 3, label: "C" },
-                { value: 4, label: "D" },
-              ]}
-            />
+            <Radio.Group>
+              <Radio value="Pending">Pending</Radio>
+              <Radio value="In Progress">In Progress</Radio>
+              <Radio value="Shipped">Shipped</Radio>
+              <Radio value="Completed">Completed</Radio>
+              <Radio value="Canceled">Canceled</Radio>
+            </Radio.Group>
           </Form.Item>
 
-      
+          {/* Payment Status */}
           <Form.Item
             label="Payment Status"
-            name="price"
-            rules={[{ required: true, message: "Please enter the price" }]}
+            name="paymentStatus"
+            rules={[
+              { required: true, message: "Please select payment status" },
+            ]}
           >
-            <Radio.Group
-              name="radiogroup"
-              defaultValue={1}
-              options={[
-                { value: 1, label: "A" },
-                { value: 2, label: "B" },
-                { value: 3, label: "C" },
-                { value: 4, label: "D" },
-              ]}
-            />
+            <Radio.Group>
+              <Radio value="Pending">Pending</Radio>
+              <Radio value="Paid">Paid</Radio>
+              <Radio value="Canceled">Canceled</Radio>
+            </Radio.Group>
           </Form.Item>
 
           {/* Buttons */}
           <div className="flex gap-3 mt-4">
-          <button
+            <button
               type="button"
               className="px-4 py-2 w-full border text-black rounded-md"
               onClick={handleCancel}
@@ -83,7 +108,6 @@ export const RepairCustomEdit = ({ editModal1, setEditModal1 }) => {
             >
               Update
             </button>
-            
           </div>
         </Form>
       </div>

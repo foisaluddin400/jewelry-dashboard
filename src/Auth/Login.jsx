@@ -9,12 +9,12 @@ const Login = () => {
   const dispatch = useDispatch();
 const [loginAdmin] = useLoginAdminMutation();
   const onFinish = async (values) => {
-    console.log("Login Data:", values);
+  
     loginAdmin(values)
       .unwrap()
       .then((payload) => {
         if (payload) {
-          console.log(payload)
+     
           dispatch(setToken(payload?.accessToken));
           message.success(payload?.message);
           navigate("/");

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useAddCategoryMutation } from "../redux/api/categoryApi";
 
 export const AddCategories = ({ openAddModal, setOpenAddModal }) => {
-  const [addCategory] = useAddCategoryMutation()
+  const [addCategory] = useAddCategoryMutation();
   const [fileList, setFileList] = useState([]);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,6 @@ export const AddCategories = ({ openAddModal, setOpenAddModal }) => {
     imgWindow?.document.write(image.outerHTML);
   };
 
-  
   const handleCancel = () => {
     form.resetFields();
     setFileList([]);
@@ -36,7 +35,7 @@ export const AddCategories = ({ openAddModal, setOpenAddModal }) => {
 
   const handleSubmit = async (values) => {
     const formData = new FormData();
-    console.log(values);
+
     formData.append("name", values?.name);
     formData.append("details", values?.details);
 
@@ -46,23 +45,22 @@ export const AddCategories = ({ openAddModal, setOpenAddModal }) => {
     setLoading(true);
 
     addCategory(formData)
-  .then((response) => {
-    console.log(response)
-    setOpenAddModal(false);
+      .then((response) => {
+       
+        setOpenAddModal(false);
 
-    if (response) {
-      message.success(response?.data?.message);
-      form.resetFields();
-    } 
-    setFileList([]);
-    setLoading(false);
-  })
-  .catch((error) => {
-    message.error(error?.data?.message);
-    console.error("Error submitting form:", error);
-    setLoading(false);
-  });
-
+        if (response) {
+          message.success(response?.data?.message);
+          form.resetFields();
+        }
+        setFileList([]);
+        setLoading(false);
+      })
+      .catch((error) => {
+        message.error(error?.data?.message);
+        console.error("Error submitting form:", error);
+        setLoading(false);
+      });
   };
   return (
     <Modal
@@ -88,7 +86,11 @@ export const AddCategories = ({ openAddModal, setOpenAddModal }) => {
             name="details"
             rules={[{ required: true, message: "Please enter details" }]}
           >
-            <Input.TextArea className="py-2" type="price" placeholder="Enter Category" />
+            <Input.TextArea
+              className="py-2"
+              type="price"
+              placeholder="Enter Category"
+            />
           </Form.Item>
           <Form.Item label="Photos">
             <Upload
@@ -96,9 +98,9 @@ export const AddCategories = ({ openAddModal, setOpenAddModal }) => {
               fileList={fileList}
               onChange={onChange}
               onPreview={onPreview}
-              multiple={true} 
+              multiple={true}
             >
-              {fileList.length < 5 && '+ Upload'}
+              {fileList.length < 5 && "+ Upload"}
             </Upload>
           </Form.Item>
           <div className="flex gap-3 mt-4">
@@ -114,11 +116,7 @@ export const AddCategories = ({ openAddModal, setOpenAddModal }) => {
               disabled={loading}
               className="px-4 py-2 w-full bg-black text-white rounded-md"
             >
-              {loading ? (
-                <Spin size="small" /> 
-              ) : (
-                "Add"
-              )}
+              {loading ? <Spin size="small" /> : "Add"}
             </button>
           </div>
         </Form>
