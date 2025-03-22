@@ -1,13 +1,33 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import JoditEditor from "jodit-react";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Navigate from "../../Navigate";
+import { useAddManageMutation, useGetAboutQuery } from "../redux/api/manageApi";
+import { Button, message } from "antd";
 
 const HelpSupport = () => {
   const editor = useRef(null);
   const [content, setContent] = useState("");
-  // const [isLoading, seLoading] = useState(false)
+  const {data: aboutUsData} = useGetAboutQuery({page: "help"})
+  const [isLoading, seLoading] = useState(false)
+  const[addManage] = useAddManageMutation()
+
+  const handleTerms = async () => {
+    const data = {
+      content: content,
+      page: "help",
+    };
+   
+    seLoading(true);
+    const res = await addManage(data).unwrap();
+    seLoading(false);
+    console.log("res", res);
+    message.success(res?.message);
+  };
+
+
+  console.log(aboutUsData)
   const navigate = useNavigate();
   // const handleTerms = () => {
   //     console.log(content)
@@ -31,13 +51,17 @@ const HelpSupport = () => {
     ],
   };
 
+  useEffect(() => {
+    setContent(aboutUsData?.content);
+  }, [aboutUsData]);
+
   return (
     <div className=" mx-auto bg-white p-3">
-    <div className="flex justify-between pb-4">
-      <div className="flex justify-between ">
-        <Navigate title={"Help & Support"}></Navigate>
+      <div className="flex justify-between pb-4">
+        <div className="flex justify-between ">
+          <Navigate title={"Help And Support"}></Navigate>
+        </div>
       </div>
-    </div>
 
       <JoditEditor
         ref={editor}
@@ -45,13 +69,17 @@ const HelpSupport = () => {
         config={config}
         tabIndex={1}
         onBlur={(newContent) => setContent(newContent)}
-        // onChange={newContent => { }}
+        onChange={newContent => { }}
       />
 
       <div className="mt-5 flex justify-center">
-        <button className="bg-[#02111E] py-2 px-4 rounded text-white">
-          Save & change
-        </button>
+        <Button
+            onClick={handleTerms}
+            className="bg-black text-white px-4 py-2 rounded-full test"
+            loading={isLoading}
+          >
+            Save Changes
+          </Button>
       </div>
     </div>
   );
